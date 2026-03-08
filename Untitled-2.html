@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi Bạn - 8/3 Đặc Biệt</title>
+    <style>
+        :root {
+            --primary: #ff7b9c;
+            --primary-dark: #ff5e84;
+            --envelope-top: #ff9db5;
+            --envelope-side: #ff8da8;
+            --paper: #fffafb;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 25%, #fad0c4 50%, #ffd1ff 75%, #ff9a9e 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+            padding-bottom: 120px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Lớp phủ mờ khi mở thư */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0);
+            transition: all 0.8s ease;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .open-overlay { background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(2px); }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            background: var(--primary);
+            margin: 0 auto;
+            cursor: pointer;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            transition: transform 0.3s;
+            border-radius: 0 0 15px 15px;
+        }
+
+        /* Nắp bao thư */
+        .envelope-wrapper::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; z-index: 4;
+            border-top: 110px solid var(--envelope-top);
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            transform-origin: top;
+            transition: transform 0.5s ease;
+        }
+
+        /* Cánh bao thư */
+        .envelope-wrapper::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; z-index: 3;
+            width: 0; height: 0;
+            border-top: 100px solid transparent;
+            border-right: 150px solid var(--envelope-side);
+            border-bottom: 100px solid var(--envelope-side);
+            border-left: 150px solid var(--envelope-top);
+            border-radius: 0 0 15px 15px;
+        }
+
+        .letter {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            height: 85%;
+            background: var(--paper);
+            padding: 30px 25px;
+            box-sizing: border-box;
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 2;
+            overflow-y: auto;
+            border-radius: 5px;
+            box-shadow: inset 0 0 15px rgba(255,123,156,0.1);
+        }
+
+        .envelope-wrapper.open::before { transform: rotateX(180deg); z-index: 1; }
+
+        .envelope-wrapper.open .letter {
+            bottom: 120px;
+            height: 75vh;
+            width: 92vw;
+            max-width: 400px;
+            z-index: 10;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+        }
+
+        /* Nội dung thư */
+        .letter .text { font-size: 15px; color: #444; line-height: 1.7; text-align: left; opacity: 0; transition: opacity 1s; }
+        .envelope-wrapper.open .letter .text { opacity: 1; }
+        
+        .letter h3 { 
+            color: var(--primary-dark); 
+            text-align: center; 
+            font-size: 1.4em;
+            margin-top: 0;
+            border-bottom: 2px dashed #ffc0d0; 
+            padding-bottom: 10px; 
+        }
+
+        .heart {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 35px; height: 35px;
+            background: #ff4757;
+            z-index: 6;
+            transform: translate(-50%, -20%) rotate(45deg);
+            transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.6);
+        }
+        .heart::before, .heart::after {
+            content: ""; position: absolute; width: 35px; height: 35px;
+            background: #ff4757; border-radius: 50%;
+        }
+        .heart::before { top: -18px; left: 0; }
+        .heart::after { left: -18px; top: 0; }
+
+        .open .heart { transform: translate(-50%, -500%) rotate(45deg) scale(0.1); opacity: 0; }
+
+        .guide { 
+            position: absolute; width: 100%; bottom: -70px;
+            color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            font-weight: 500; animation: bounce 2s infinite;
+            letter-spacing: 1px;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-15px);}
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .signature {
+            text-align: right;
+            font-style: italic;
+            margin-top: 25px;
+            color: var(--primary-dark);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    <canvas id="canvas"></canvas>
+
+    <div class="container">
+        <div class="envelope-wrapper" id="envelope">
+            <div class="heart"></div>
+            <div class="letter">
+                <div class="text">
+                    <h3>GỬI BẠN THÂN MẾN 🌸</h3>
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <strong style="color: #d1618a; font-size: 1.1em; letter-spacing: 1px;">THÔNG ĐIỆP 8/3 Ý NGHĨA</strong>
+                    </div>
+                    <p>Chào bạn nhé!</p>
+                    <p>Hôm nay là một ngày thực sự đặc biệt. Thay vì những lời chúc sáo rỗng, mình muốn nhắn nhủ đến bạn:</p>
+                    
+                    <p><b>1. Luôn tự tin vào bản thân:</b> Bạn xinh đẹp và tỏa sáng nhất khi là chính mình. Đừng bao giờ nghi ngờ giá trị của bản thân nhé!</p>
+                    <p><b>2. Đam mê và bản lĩnh:</b> Chúc bạn đủ mạnh mẽ để chinh phục những đỉnh cao mới trong công việc. Mọi nỗ lực của bạn chắc chắn sẽ hái được quả ngọt.</p>
+                    <p><b>3. Tận hưởng hạnh phúc:</b> Mong bạn luôn tìm thấy niềm vui từ những điều nhỏ bé nhất: một tách trà ngon, một buổi chiều bình yên hay những tiếng cười bên người thân.</p>
+                    
+                    <div style="color: #ff5e84; font-weight: bold; background: #fff1f5; padding: 18px; border-radius: 12px; margin-top: 20px; border: 1px solid #ffe0e9; line-height: 1.8;">
+                        ✨ Luôn xinh tươi, không ưu phiền<br>
+                        ✨ Vạn sự hanh thông, triệu điều may<br>
+                        ✨ Mãi là phiên bản tuyệt vời nhất!
+                    </div>
+                    
+                    <p style="margin-top: 20px;">Cảm ơn bạn đã luôn ở đây, là một người bạn tuyệt vời. Chúc bạn một ngày 8/3 ngập tràn hoa và quà!</p>
+                    <p class="signature">Từ một người bạn luôn ủng hộ bạn</p>
+                </div>
+            </div>
+        </div>
+        <p class="guide">Chạm vào trái tim để mở thư nhé!</p>
+    </div>
+
+   <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let sparkles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Lớp hạt lấp lánh nhẹ nhàng trên nền
+        class Sparkle {
+            constructor() {
+                this.init();
+            }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.v = Math.random() * 0.5 + 0.2;
+                this.opacity = Math.random();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            update() {
+                this.y -= this.v;
+                if (this.y < 0) this.y = canvas.height;
+            }
+        }
+
+        // Khởi tạo hạt lấp lánh
+        for(let i=0; i<50; i++) sparkles.push(new Sparkle());
+
+        class Particle {
+            constructor(x, y, color, velocityX, velocityY, size) {
+                this.x = x; this.y = y; this.color = color;
+                this.velocity = { x: velocityX, y: velocityY };
+                this.alpha = 1;
+                this.friction = 0.96;
+                this.gravity = 0.12;
+                this.size = size || Math.random() * 3 + 1;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+            update() {
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                this.velocity.y += this.gravity;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= 0.01; 
+            }
+        }
+
+        function createFirework(x, y) {
+            const count = 100;
+            const colors = ['#FF1493', '#FF69B4', '#FFD700', '#FFFFFF', '#00FFFF', '#FF4500', '#FFB6C1'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            
+            for (let i = 0; i < count; i++) {
+                const angle = (Math.PI * 2 / count) * i;
+                const speed = Math.random() * 10 + 2;
+                particles.push(new Particle(
+                    x, y, color, 
+                    Math.cos(angle) * speed, 
+                    Math.sin(angle) * speed,
+                    Math.random() * 2 + 1
+                ));
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Vẽ hạt lấp lánh nền
+            sparkles.forEach(s => {
+                s.update();
+                s.draw();
+            });
+
+            // Vẽ pháo hoa
+            particles.forEach((p, i) => {
+                if (p.alpha > 0) {
+                    p.update();
+                    p.draw();
+                } else {
+                    particles.splice(i, 1);
+                }
+            });
+            requestAnimationFrame(animate);
+        }
+
+        const envelope = document.getElementById('envelope');
+        const overlay = document.getElementById('overlay');
+
+        envelope.addEventListener('click', () => {
+            const isOpening = !envelope.classList.contains('open');
+            envelope.classList.toggle('open');
+            overlay.classList.toggle('open-overlay');
+
+            if (isOpening) {
+                setTimeout(() => {
+                    let shots = 0;
+                    const interval = setInterval(() => {
+                        createFirework(
+                            Math.random() * canvas.width, 
+                            Math.random() * (canvas.height * 0.4) + 100
+                        );
+                        shots++;
+                        if (shots > 10) clearInterval(interval);
+                    }, 400);
+                }, 400);
+            }
+        });
+
+        animate();
+    </script>
+</body>
+</html>
